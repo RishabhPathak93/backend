@@ -1,0 +1,26 @@
+sequenceDiagram
+    participant LocalA
+    participant LocalB
+    participant Central
+
+    Note over LocalA,Central: Provisioning LocalA
+    LocalA->>LocalA: Generate keypair
+    LocalA->>Central: POST /provision {org_id, license_id, local_id=A, pubkey}
+    Central-->>LocalA: provisioning_jwt(A), root_pub
+
+    Note over LocalB,Central: Provisioning LocalB
+    LocalB->>LocalB: Generate keypair
+    LocalB->>Central: POST /provision {org_id, license_id, local_id=B, pubkey}
+    Central-->>LocalB: provisioning_jwt(B), root_pub
+
+    Note over LocalA,Central: Assertion (LocalA)
+    LocalA->>Central: GET /challenge?local_id=A
+    Central-->>LocalA: {nonce}
+    LocalA->>Central: POST /license/assert {A, signed_nonce, provisioning_jwt(A)}
+    Central-->>LocalA: assertion_jwt(A)
+
+    Note over LocalB,Central: Assertion (LocalB)
+    LocalB->>Central: GET /challenge?local_id=B
+    Central-->>LocalB: {nonce}
+    LocalB->>Central: POST /license/assert {B, signed_nonce, provisioning_jwt(B)}
+    Central-->>LocalB: assertion_jwt(B)
